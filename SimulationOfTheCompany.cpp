@@ -17,6 +17,7 @@ public:
 
 class Task : public Command
 {
+public:
     char commandType;
 
     Task(char inType, int inId): Command(inId)
@@ -69,6 +70,11 @@ public:
     {
         command = nullptr;
     }
+
+    Command* getCommand()
+    {
+        return command;
+    }
 };
 class Worker: public HR
 {
@@ -93,6 +99,7 @@ class Structure
 public:
     
     Manager* teamLider;
+    bool freeWorkers;
      
 };
 
@@ -102,9 +109,9 @@ public:
     int taskCount;
     std::vector<Worker*> workers;
 
-    void makeCommand(int companyLeaderCommand)
+    void makeCommand(Command* companyLeaderCommand)
     {
-        std::srand(companyLeaderCommand + teamLider->getID());
+        std::srand(companyLeaderCommand->identificator + teamLider->getID());
         taskCount = rand() % (this->workers.size() + 1);
         for (int i = 0; i < workers.size(); i++)
         {
@@ -120,6 +127,7 @@ public:
 
     Team(Manager* leader)
     {
+        freeWorkers = true;
         taskCount = 0;
         int tempWorkersCount = 0;
         std::string tempName;
@@ -135,6 +143,7 @@ public:
             Worker* worker = new Worker(tempName, tempID);
             workers.push_back(worker);
         }
+        
     }
 };
 
@@ -143,10 +152,17 @@ class Company : public Structure
 public:
     std::vector<Team*> units;
 
-
+    void sendCommand()
+    {
+        for (int i = 0; i < units.size(); i++)
+        {
+            units[i]->makeCommand(teamLider->getCommand());
+        }
+    }
 
     Company()
     {
+        freeWorkers = true;
         int tempTeamCount = 0;
         std::string tempName;
         int tempID;
@@ -171,9 +187,15 @@ public:
 
     ~Company()
     {
+        delete teamLider;
         for (int i = 0; i < units.size(); i++)
         {
-
+            delete units[i]->teamLider;
+            for (int j = 0; j < units[i]->workers.size(); j++)
+            {
+                delete units[i]->workers[i];
+            }
+            delete units[i];
         }
     }
 };
@@ -193,6 +215,7 @@ int main()
         if (tempCommand == 0) break;
         Command* command = new Command(tempCommand);
         company->teamLider->setCommand(command);
+        company->sendCommand();
     }
-    
+    delete company;
 }
