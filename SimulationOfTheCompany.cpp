@@ -151,7 +151,7 @@ public:
         {
             if (getWorker(i)->getTask() == nullptr)
             {
-                int inTask = 1 + rand() % 3;
+                int inTask = 1 + rand() % 2;
                 Task* task = new Task(inTask, inCommand);
                 getWorker(i)->setTask(task);
                 taskCount--;
