@@ -54,11 +54,20 @@ public:
         return workerID;
     }
 
-    
-
-    HR(std::string name, int id) : workerName(name), workerID(id)
+    void setName(std::string name)
     {
-        
+        workerName = name;
+    }
+    
+    void setId(int id)
+    {
+        workerID = id;
+    }
+
+    HR(std::string name, int id)
+    {
+        setName(name);
+        setId(id);
     }
 };
 
@@ -161,6 +170,7 @@ public:
     {
         freeWorkers = true;
         taskCount = 0;
+        teamLider = leader;
         int tempWorkersCount = 0;
         std::string tempName;
         int tempID;
