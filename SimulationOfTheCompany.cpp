@@ -20,14 +20,21 @@ class Task : public Command
 public:
     char commandType;
 
-    Task(char inType, int inId): Command(inId)
+    Task(int inType, int inId): Command(inId)
     {
-        if (inType != 'A' && inType != 'B' && inType != 'C')
+        switch (inType)
         {
-            inType = 'A';
+        case 1:
+            commandType = 'A';
+            break;
+        case 2:
+            commandType = 'B';
+            break;
+        case 3:
+            commandType = 'C';
+            break;
         }
-        commandType = inType;
-        
+                
     }
 };
 
@@ -64,6 +71,7 @@ public:
     void setCommand(Command* command)
     {
         this->command = command;
+        std::cout << "Manager " << getName() << " get task: " << getCommand()->identificator << std::endl;
     }
 
     Manager(std::string name, int id) : HR(name, id)
@@ -76,6 +84,7 @@ public:
         return command;
     }
 };
+
 class Worker: public HR
 {
     
@@ -83,9 +92,14 @@ class Worker: public HR
 
 public:
 
+    Task* getTask()
+    {
+        return task;
+    }
     void setTask(Task* task)
     {
         this->task = task;
+        std::cout << "Worker " << getName() << " get task: " << getTask()->commandType << getTask()->identificator << std::endl;
     }
     
     Worker(std::string name, int id): HR(name, id)
@@ -109,14 +123,32 @@ public:
     int taskCount;
     std::vector<Worker*> workers;
 
-    void makeCommand(Command* companyLeaderCommand)
+    void checkFreeWorkers()
     {
-        std::srand(companyLeaderCommand->identificator + teamLider->getID());
-        taskCount = rand() % (this->workers.size() + 1);
+        int counter = 0;
         for (int i = 0; i < workers.size(); i++)
         {
-            
+            if (workers[i]->getTask() == nullptr) counter++;
         }
+        if (counter == 0) this->freeWorkers = false;
+    }
+
+    void makeCommand(Command* companyLeaderCommand)
+    {
+        int inCommand = companyLeaderCommand->identificator + teamLider->getID();
+        std::srand(inCommand);
+        taskCount = rand() % (this->workers.size() + 1);
+        for (int i = 0; i < workers.size() && taskCount > 0; i++)
+        {
+            if (getWorker(i)->getTask() == nullptr)
+            {
+                int inTask = 1 + rand() % 3;
+                Task* task = new Task(inTask, inCommand);
+                getWorker(i)->setTask(task);
+                taskCount--;
+            }
+        }
+        checkFreeWorkers();
     }
 
     Worker* getWorker(int i)
@@ -152,13 +184,29 @@ class Company : public Structure
 public:
     std::vector<Team*> units;
 
+    void checkFreeTeam()
+    {
+        int counter = 0;
+        for (int i = 0; i < units.size(); i++)
+        {
+            if (units[i]->freeWorkers) counter++;
+        }
+        if (counter == 0) this->freeWorkers = false;
+    }
+
     void sendCommand()
     {
         for (int i = 0; i < units.size(); i++)
         {
-            units[i]->makeCommand(teamLider->getCommand());
+            if (units[i]->freeWorkers)
+            {
+                units[i]->makeCommand(teamLider->getCommand());
+            }
         }
+        checkFreeTeam();
     }
+
+    
 
     Company()
     {
@@ -193,7 +241,8 @@ public:
             delete units[i]->teamLider;
             for (int j = 0; j < units[i]->workers.size(); j++)
             {
-                delete units[i]->workers[i];
+                delete units[i]->workers[j]->getTask();
+                delete units[i]->workers[j];
             }
             delete units[i];
         }
@@ -208,7 +257,7 @@ int main()
     Company* company = new Company();
     int tempCommand{};
     
-    while(true)
+    while(company->freeWorkers)
     {
         std::cout << "Enter the command: ";
         std::cin >> tempCommand;
@@ -216,6 +265,7 @@ int main()
         Command* command = new Command(tempCommand);
         company->teamLider->setCommand(command);
         company->sendCommand();
+        delete command;
     }
     delete company;
 }
