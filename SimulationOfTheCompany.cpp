@@ -256,6 +256,7 @@ public:
         delete teamLider;
         for (int i = 0; i < units.size(); i++)
         {
+            delete units[i]->teamLider->getCommand();
             delete units[i]->teamLider;
             for (int j = 0; j < units[i]->workers.size(); j++)
             {
