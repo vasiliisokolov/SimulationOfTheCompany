@@ -44,6 +44,8 @@ class HR
     int workerID;
 public:
 
+    bool free;
+
     std::string getName()
     {
         return workerName;
@@ -68,6 +70,7 @@ public:
     {
         setName(name);
         setId(id);
+        free = true;
     }
 };
 
@@ -81,6 +84,7 @@ public:
     {
         this->command = command;
         std::cout << "Manager " << getName() << " get task: " << getCommand()->identificator << std::endl;
+        free = false;
     }
 
     Manager(std::string name, int id) : HR(name, id)
@@ -91,6 +95,7 @@ public:
     Command* getCommand()
     {
         return command;
+        
     }
 };
 
@@ -108,7 +113,9 @@ public:
     void setTask(Task* task)
     {
         this->task = task;
-        std::cout << "Worker " << getName() << " get task: " << getTask()->commandType << getTask()->identificator << std::endl;
+        std::cout << "Worker " << getName() << " get task: " << getTask()->commandType 
+            << getTask()->identificator << std::endl;
+        free = false;
     }
     
     Worker(std::string name, int id): HR(name, id)
@@ -137,13 +144,14 @@ public:
         int counter = 0;
         for (int i = 0; i < workers.size(); i++)
         {
-            if (workers[i]->getTask() == nullptr) counter++;
+            if (workers[i]->free) counter++;
         }
         if (counter == 0) this->freeWorkers = false;
     }
 
     void makeCommand(Command* companyLeaderCommand)
     {
+        teamLider->setCommand(companyLeaderCommand);
         int inCommand = companyLeaderCommand->identificator + teamLider->getID();
         std::srand(inCommand);
         taskCount = rand() % (this->workers.size() + 1);
@@ -265,10 +273,10 @@ int main()
 {
     std::cout << "Company simulation!" << std::endl;
     Company* company = new Company();
-    int tempCommand{};
-    
+        
     while(company->freeWorkers)
     {
+        int tempCommand = 0;
         std::cout << "Enter the command: ";
         std::cin >> tempCommand;
         if (tempCommand == 0) break;
